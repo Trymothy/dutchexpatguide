@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expat in Holland — Practical guides for internationals in the Netherlands</title>
+  <meta name="description" content="Independent, practical guides for expats living in the Netherlands. Banking, healthcare, taxes, housing, and more — written clearly, without jargon.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://expatinholland.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Expat in Holland — Practical guides for internationals in the Netherlands">
+  <meta property="og:description" content="Independent, practical guides for expats living in the Netherlands. Banking, healthcare, taxes, housing, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- ADSENSE CODE HERE -->
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="site-title"><a href="/">Expat in Holland</a></div>
+    <div class="site-tagline">Practical guides for internationals in the Netherlands</div>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+    <a href="/" class="active">All guides</a>
+    <a href="/?cat=Banking">Banking</a>
+    <a href="/?cat=Healthcare">Healthcare</a>
+    <a href="/?cat=Taxes">Taxes</a>
+    <a href="/?cat=Housing">Housing</a>
+    <a href="/?cat=Identity">Identity &amp; admin</a>
+    <a href="/?cat=Telecoms">Phone &amp; internet</a>
+    <a href="/about.html">About</a>
+  </div>
+</nav>
+
+<div id="hero-section"></div>
+
+<div class="content-area">
+  <div class="container">
+    <!-- ADSENSE AD UNIT HERE -->
+    <div id="main-grid"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>© 2026 Expat in Holland. Independent guides, no affiliation with any bank or insurer.</span>
+    <div class="footer-links">
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const filterCat = params.get('cat') || '';
+
+fetch('/data/articles.json')
+  .then(r => r.json())
+  .then(articles => {
+    const filtered = filterCat
+      ? articles.filter(a => a.category === filterCat)
+      : articles;
+
+    // Hero: first article (or first of filtered)
+    if (filtered.length > 0) {
+      const hero = filtered[0];
+      document.getElementById('hero-section').innerHTML = `
+        <div class="hero">
+          <div class="hero-inner">
+            <div class="hero-label">${hero.category}</div>
+            <h1 class="hero-title">${hero.title}</h1>
+            <p class="hero-excerpt">${hero.excerpt}</p>
+            <div class="hero-meta">${hero.readTime} read</div>
+            <a href="/article.html?id=${hero.id}" class="hero-read-link">Read the guide →</a>
+          </div>
+        </div>`;
+    }
+
+    // Grid: remaining articles grouped by category
+    const rest = filtered.slice(1);
+    if (filterCat) {
+      // Flat grid when filtering
+      const grid = rest.map(a => cardHTML(a)).join('');
+      document.getElementById('main-grid').innerHTML =
+        `<h2 class="section-title">${filterCat}</h2><div class="article-grid">${grid}</div>`;
+    } else {
+      // Group by category
+      const cats = {};
+      filtered.slice(1).forEach(a => {
+        if (!cats[a.category]) cats[a.category] = [];
+        cats[a.category].push(a);
+      });
+      let html = '';
+      for (const [cat, items] of Object.entries(cats)) {
+        html += `<h2 class="section-title">${cat}</h2>
+          <div class="article-grid">${items.map(cardHTML).join('')}</div>`;
+      }
+      document.getElementById('main-grid').innerHTML = html;
+    }
+  });
+
+function cardHTML(a) {
+  return `<div class="article-card">
+    <span class="tag tag-${a.category}">${a.category}</span>
+    <div class="card-title"><a href="/article.html?id=${a.id}">${a.title}</a></div>
+    <div class="card-excerpt">${a.excerpt}</div>
+    <div class="card-meta">${a.readTime} read</div>
+  </div>`;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Guide — Expat in Holland</title>
+  <meta name="description" id="page-desc" content="Practical guides for expats in the Netherlands.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" id="page-canonical" href="https://expatinholland.com/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" id="og-title" content="">
+  <meta property="og:description" id="og-desc" content="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- ADSENSE CODE HERE -->
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="site-title"><a href="/">Expat in Holland</a></div>
+    <div class="site-tagline">Practical guides for internationals in the Netherlands</div>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+    <a href="/">All guides</a>
+    <a href="/?cat=Banking">Banking</a>
+    <a href="/?cat=Healthcare">Healthcare</a>
+    <a href="/?cat=Taxes">Taxes</a>
+    <a href="/?cat=Housing">Housing</a>
+    <a href="/?cat=Identity">Identity &amp; admin</a>
+    <a href="/?cat=Telecoms">Phone &amp; internet</a>
+    <a href="/about.html">About</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-layout">
+    <main>
+      <div id="article-header" class="article-header"></div>
+      <!-- ADSENSE AD UNIT HERE -->
+      <div id="article-body" class="article-body"></div>
+      <!-- ADSENSE AD UNIT HERE -->
+      <div style="margin-top:40px; padding-top:24px; border-top:1px solid var(--border); font-family:var(--font-ui); font-size:13px; color:var(--text-muted);">
+        <strong>Was this guide helpful?</strong> We try to keep all information up to date, but rules change. Always verify critical financial, tax, or legal information directly with the relevant authority before making decisions.
+        <br><br><a href="/">← Back to all guides</a>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <div class="widget">
+        <div class="widget-title">More guides</div>
+        <ul id="related-links"></ul>
+      </div>
+      <div class="widget">
+        <div class="widget-title">Useful links</div>
+        <ul>
+          <li><a href="https://www.belastingdienst.nl/wps/wcm/connect/en/home/home" target="_blank" rel="noopener">Tax Authority (English)</a></li>
+          <li><a href="https://www.government.nl/topics/living-and-working-in-the-netherlands" target="_blank" rel="noopener">Government expat guide</a></li>
+          <li><a href="https://www.ind.nl/en" target="_blank" rel="noopener">Immigration (IND)</a></li>
+          <li><a href="https://www.zorgwijzer.nl/zorgvergelijker/english" target="_blank" rel="noopener">Health insurance compare</a></li>
+          <li><a href="https://www.werk.nl/en/" target="_blank" rel="noopener">Work in the Netherlands</a></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>© 2026 Expat in Holland. Independent guides, no affiliation with any bank or insurer.</span>
+    <div class="footer-links">
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const id = new URLSearchParams(window.location.search).get('id');
+
+fetch('/data/articles.json')
+  .then(r => r.json())
+  .then(articles => {
+    const article = articles.find(a => a.id === id);
+    if (!article) {
+      document.getElementById('article-header').innerHTML = '<h1>Article not found</h1>';
+      return;
+    }
+
+    // Meta
+    document.getElementById('page-title').textContent = article.title + ' — Expat in Holland';
+    document.getElementById('page-desc').content = article.excerpt;
+    document.getElementById('og-title').content = article.title;
+    document.getElementById('og-desc').content = article.excerpt;
+    document.getElementById('page-canonical').href = 'https://expatinholland.com/article.html?id=' + article.id;
+
+    // Header
+    document.getElementById('article-header').innerHTML = `
+      <div class="article-tag"><span class="tag tag-${article.category}">${article.category}</span></div>
+      <h1 class="article-title">${article.title}</h1>
+      <div class="article-meta">${article.readTime} read &nbsp;·&nbsp; Last updated ${new Date(article.publishedAt).toLocaleDateString('en-GB', {year:'numeric',month:'long'})}</div>`;
+
+    // Body
+    document.getElementById('article-body').innerHTML = article.body;
+
+    // Related (same category, excluding self)
+    const related = articles.filter(a => a.category === article.category && a.id !== article.id).slice(0, 5);
+    document.getElementById('related-links').innerHTML = related.map(a =>
+      `<li><a href="/article.html?id=${a.id}">${a.title}</a></li>`
+    ).join('') || '<li>No related guides yet.</li>';
+  });
+</script>
+</body>
+</html>
