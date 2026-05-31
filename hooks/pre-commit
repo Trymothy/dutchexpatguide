@@ -1,0 +1,15 @@
+#!/bin/bash
+# Auto-regenerate static pages whenever the article data changes.
+# Keeps guides/, c/, index.html and sitemap.xml in sync with data/articles.json.
+set -e
+
+REPO="$(git rev-parse --show-toplevel)"
+
+# Only rebuild if the article data is part of this commit.
+if git diff --cached --name-only | grep -q '^data/articles.json$'; then
+  echo "[pre-commit] articles.json changed — running build.py…"
+  /usr/bin/python3 "$REPO/build.py" >/dev/null
+  git add "$REPO/index.html" "$REPO/sitemap.xml" "$REPO/article.html" \
+          "$REPO/guides" "$REPO/c"
+  echo "[pre-commit] regenerated static pages staged."
+fi

@@ -12,6 +12,7 @@
   --tag-housing: #4a235a;
   --tag-identity: #1a4a5a;
   --tag-telecoms: #2c3e50;
+  --tag-insurance: #5a3a1a;
   --max-width: 900px;
   --font-body: 'Georgia', 'Times New Roman', serif;
   --font-ui: system-ui, -apple-system, sans-serif;
@@ -132,6 +133,7 @@ a:hover { text-decoration: underline; }
 .tag-Housing { background: var(--tag-housing); }
 .tag-Identity { background: var(--tag-identity); }
 .tag-Telecoms { background: var(--tag-telecoms); }
+.tag-Insurance { background: var(--tag-insurance); }
 
 .card-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
 .card-title a { color: var(--text); }
