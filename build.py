@@ -37,6 +37,36 @@ CATEGORIES = [
 ]
 CAT_LABEL = dict(CATEGORIES)
 
+# Themed photos per category (in /images/). Categories with several articles
+# get a small pool so the same picture doesn't repeat on every page.
+CAT_IMAGE = {
+    "Banking": ["/images/cat-banking.jpg"],
+    "Healthcare": ["/images/cat-healthcare.jpg"],
+    "Insurance": ["/images/cat-insurance.jpg"],
+    "Taxes": ["/images/cat-taxes.jpg"],
+    "Housing": ["/images/cat-housing.jpg", "/images/cat-housing-2.jpg"],
+    "Identity": ["/images/cat-identity.jpg"],
+    "Telecoms": ["/images/cat-telecoms.jpg"],
+}
+
+
+def assign_images(articles):
+    """Give each article an image: per-article `image` field wins, else a
+    deterministic pick from its category pool (rotating for variety)."""
+    counters = {}
+    for a in articles:
+        if a.get("image"):
+            a["_image"] = a["image"]
+            continue
+        pool = CAT_IMAGE.get(a["category"], ["/images/cat-housing.jpg"])
+        i = counters.get(a["category"], 0)
+        a["_image"] = pool[i % len(pool)]
+        counters[a["category"]] = i + 1
+
+
+def img_of(a):
+    return a.get("_image", "/images/cat-housing.jpg")
+
 ADS_SCRIPT = (
     f'  <script async src="https://pagead2.googlesyndication.com/pagead/js/'
     f'adsbygoogle.js?client={ADS_CLIENT}" crossorigin="anonymous"></script>'
@@ -51,7 +81,12 @@ def fmt_date(iso):
         return iso
 
 
-def head(title, desc, canonical, *, og_type="website", extra=""):
+def head(title, desc, canonical, *, og_type="website", og_image="", extra=""):
+    og_img_tags = ""
+    if og_image:
+        full = og_image if og_image.startswith("http") else SITE + og_image
+        og_img_tags = (f'\n  <meta property="og:image" content="{full}">'
+                       f'\n  <meta name="twitter:card" content="summary_large_image">')
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,7 +98,7 @@ def head(title, desc, canonical, *, og_type="website", extra=""):
   <link rel="canonical" href="{canonical}">
   <meta property="og:type" content="{og_type}">
   <meta property="og:title" content="{escape(title)}">
-  <meta property="og:description" content="{escape(desc)}">
+  <meta property="og:description" content="{escape(desc)}">{og_img_tags}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Georgia&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
@@ -110,8 +145,10 @@ FOOTER = """
 
 
 def card(a):
+    label = escape(CAT_LABEL.get(a['category'], a['category']))
     return f"""<div class="article-card">
-    <span class="tag tag-{a['category']}">{escape(CAT_LABEL.get(a['category'], a['category']))}</span>
+    <a class="card-image" href="/guides/{a['id']}.html"><img src="{img_of(a)}" alt="{escape(a['title'])}" loading="lazy" width="600" height="168"></a>
+    <span class="tag tag-{a['category']}">{label}</span>
     <div class="card-title"><a href="/guides/{a['id']}.html">{escape(a['title'])}</a></div>
     <div class="card-excerpt">{escape(a['excerpt'])}</div>
     <div class="card-meta">{escape(a['readTime'])} read</div>
@@ -139,10 +176,11 @@ def render_index(articles):
             "without jargon.")
     body = head(
         "Expat in Holland — Practical guides for internationals in the Netherlands",
-        desc, f"{SITE}/", og_type="website")
+        desc, f"{SITE}/", og_type="website", og_image=img_of(hero))
     body += nav("home")
     body += f"""
 <div class="hero">
+  <figure class="hero-figure"><img src="{img_of(hero)}" alt="{escape(hero['title'])}" width="1400" height="340"></figure>
   <div class="hero-inner">
     <div class="hero-label">{escape(CAT_LABEL.get(hero['category'], hero['category']))}</div>
     <h1 class="hero-title">{escape(hero['title'])}</h1>
@@ -190,6 +228,7 @@ def render_article(a, articles):
         "@type": "Article",
         "headline": a["title"],
         "description": a["excerpt"],
+        "image": SITE + img_of(a),
         "datePublished": a["publishedAt"],
         "dateModified": a["publishedAt"],
         "articleSection": label,
@@ -224,7 +263,7 @@ def render_article(a, articles):
         for x in related) or "<li>No related guides yet.</li>"
 
     body = head(f"{a['title']} — Expat in Holland", a["excerpt"], canonical,
-                og_type="article", extra=ld_script)
+                og_type="article", og_image=img_of(a), extra=ld_script)
     body += nav(a["category"])
     body += f"""
 <div class="container">
@@ -233,6 +272,7 @@ def render_article(a, articles):
       <nav class="breadcrumb" aria-label="Breadcrumb" style="font-family:var(--font-ui);font-size:13px;color:var(--text-muted);margin:18px 0 8px;">
         <a href="/">Home</a> &rsaquo; <a href="/c/{a['category']}.html">{escape(label)}</a>
       </nav>
+      <figure class="article-hero"><img src="{img_of(a)}" alt="{escape(a['title'])}" width="1400" height="360"></figure>
       <div class="article-header">
         <div class="article-tag"><span class="tag tag-{a['category']}">{escape(label)}</span></div>
         <h1 class="article-title">{escape(a['title'])}</h1>
@@ -323,6 +363,7 @@ def main():
     with open(os.path.join(BASE, "data", "articles.json"), encoding="utf-8") as f:
         articles = json.load(f)
     print(f"Building {len(articles)} articles…")
+    assign_images(articles)
 
     write("index.html", render_index(articles))
     for a in articles:
