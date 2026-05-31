@@ -51,12 +51,18 @@ CAT_IMAGE = {
 
 
 def assign_images(articles):
-    """Give each article an image: per-article `image` field wins, else a
-    deterministic pick from its category pool (rotating for variety)."""
+    """Give each article an image, in priority order:
+      1. explicit `image` field in the data
+      2. a per-article file at images/<id>.jpg (one unique photo per article)
+      3. a rotating pick from the category pool (fallback)."""
     counters = {}
     for a in articles:
         if a.get("image"):
             a["_image"] = a["image"]
+            continue
+        per_article = f"/images/{a['id']}.jpg"
+        if os.path.exists(os.path.join(BASE, per_article.lstrip("/"))):
+            a["_image"] = per_article
             continue
         pool = CAT_IMAGE.get(a["category"], ["/images/cat-housing.jpg"])
         i = counters.get(a["category"], 0)
