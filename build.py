@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from html import escape
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SITE = "https://expatinholland.com"
+SITE = "https://www.hollandexpatguide.com"
 ADS_CLIENT = "ca-pub-4371405280920860"
 
 # category id -> human label used in the nav
