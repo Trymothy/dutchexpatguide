@@ -33,7 +33,7 @@ CATEGORIES = [
     ("Taxes", "Taxes"),
     ("Housing", "Housing"),
     ("Identity", "Identity & admin"),
-    ("Telecoms", "Phone & internet"),
+    ("Telecoms", "Utilities & connectivity"),
 ]
 CAT_LABEL = dict(CATEGORIES)
 
