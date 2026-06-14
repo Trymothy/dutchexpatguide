@@ -24,6 +24,128 @@ from html import escape
 BASE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://www.hollandexpatguide.com"
 ADS_CLIENT = "ca-pub-4371405280920860"
+PUBLISHER = "Expat in Holland"
+# Date the guides were last checked against the official sources below.
+# Bump this (or set a per-article "reviewed" field) when content is re-verified.
+REVIEWED_DEFAULT = "2026-06-14"
+
+# Authoritative sources shown at the foot of each guide. Verifiability is the
+# single biggest "is this content trustworthy" signal for YMYL topics, so every
+# guide cites the official Dutch government / regulator pages it is based on.
+# A per-article "sources" field in the data overrides this mapping.
+ART_SOURCES = {
+    "best-bank-accounts-expats-netherlands-2026": [
+        ("Dutch Banking Association (NVB) — English", "https://www.nvb.nl/"),
+        ("De Nederlandsche Bank — central bank", "https://www.dnb.nl/en/"),
+        ("Government.nl — banking", "https://www.government.nl/topics/new-in-the-netherlands"),
+    ],
+    "abn-amro-vs-ing-vs-rabobank": [
+        ("ABN AMRO — personal banking (English)", "https://www.abnamro.nl/en/personal/index.html"),
+        ("ING Netherlands", "https://www.ing.nl/"),
+        ("Rabobank", "https://www.rabobank.nl/"),
+    ],
+    "open-bank-account-netherlands-without-bsn": [
+        ("Government.nl — citizen service number (BSN)", "https://www.government.nl/topics/personal-data/citizen-service-number-bsn"),
+        ("De Nederlandsche Bank — central bank", "https://www.dnb.nl/en/"),
+        ("bunq — Dutch IBAN account", "https://www.bunq.com/"),
+    ],
+    "bunq-n26-revolut-netherlands": [
+        ("bunq", "https://www.bunq.com/"),
+        ("N26", "https://n26.com/en-eu"),
+        ("Revolut", "https://www.revolut.com/"),
+    ],
+    "health-insurance-netherlands-expats-complete-guide": [
+        ("Zorgverzekeringslijn — official help line (English)", "https://www.zorgverzekeringslijn.nl/english/"),
+        ("Government.nl — health insurance", "https://www.government.nl/topics/health-insurance"),
+        ("Zorgwijzer — compare insurers (English)", "https://www.zorgwijzer.nl/zorgvergelijker/english"),
+    ],
+    "30-percent-ruling-explained": [
+        ("Belastingdienst — Tax Authority (English)", "https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/individuals"),
+        ("Government.nl — income tax", "https://www.government.nl/topics/income-tax"),
+        ("IND — coming to work in the Netherlands", "https://ind.nl/en"),
+    ],
+    "renting-apartment-amsterdam-expat": [
+        ("Government.nl — housing", "https://www.government.nl/topics/housing"),
+        ("Huurcommissie — Rent Tribunal (English)", "https://www.huurcommissie.nl/"),
+        ("I amsterdam — official city guide", "https://www.iamsterdam.com/en"),
+    ],
+    "digid-expats-what-it-is-how-to-get": [
+        ("DigiD — official site (English)", "https://www.digid.nl/en"),
+        ("Logius — DigiD service owner", "https://www.logius.nl/diensten/digid"),
+    ],
+    "bsn-number-netherlands-how-to-get": [
+        ("Government.nl — citizen service number (BSN)", "https://www.government.nl/topics/personal-data/citizen-service-number-bsn"),
+        ("Government.nl — Personal Records Database (BRP)", "https://www.government.nl/topics/personal-data/personal-records-database-brp"),
+    ],
+    "filing-taxes-expat-netherlands-belastingdienst": [
+        ("Belastingdienst — Tax Authority (English)", "https://www.belastingdienst.nl/wps/wcm/connect/en/home/home"),
+        ("Government.nl — income tax", "https://www.government.nl/topics/income-tax"),
+    ],
+    "best-mobile-plans-netherlands-expats": [
+        ("ACM ConsuWijzer — consumer authority", "https://www.consuwijzer.nl/"),
+        ("Authority for Consumers & Markets (ACM)", "https://www.acm.nl/en"),
+    ],
+    "dutch-health-insurance-vs-private-insurance": [
+        ("Zorgverzekeringslijn — official help line (English)", "https://www.zorgverzekeringslijn.nl/english/"),
+        ("Government.nl — health insurance", "https://www.government.nl/topics/health-insurance"),
+    ],
+    "cost-of-living-netherlands-expats-2026": [
+        ("Statistics Netherlands (CBS) — English", "https://www.cbs.nl/en-gb"),
+        ("Nibud — National Institute for Family Finance", "https://www.nibud.nl/"),
+    ],
+    "exchange-foreign-driving-license-netherlands": [
+        ("RDW — vehicle authority (English)", "https://www.rdw.nl/particulier"),
+        ("Government.nl — driving licence", "https://www.government.nl/topics/driving-licence"),
+    ],
+    "internet-providers-netherlands-compared": [
+        ("ACM ConsuWijzer — consumer authority", "https://www.consuwijzer.nl/"),
+        ("Authority for Consumers & Markets (ACM)", "https://www.acm.nl/en"),
+    ],
+    "energy-providers-netherlands-compared": [
+        ("ACM ConsuWijzer — consumer authority", "https://www.consuwijzer.nl/"),
+        ("Authority for Consumers & Markets (ACM)", "https://www.acm.nl/en"),
+    ],
+    "30-percent-ruling-tapering-2026": [
+        ("Belastingdienst — Tax Authority (English)", "https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/individuals"),
+        ("Government.nl — income tax", "https://www.government.nl/topics/income-tax"),
+    ],
+    "box-3-wealth-tax-explained": [
+        ("Belastingdienst — Tax Authority (English)", "https://www.belastingdienst.nl/wps/wcm/connect/en/individuals/individuals"),
+        ("Government.nl — income tax", "https://www.government.nl/topics/income-tax"),
+    ],
+    "mortgage-as-expat-netherlands": [
+        ("Government.nl — housing", "https://www.government.nl/topics/housing"),
+        ("AFM — financial markets authority (English)", "https://www.afm.nl/en"),
+        ("Nibud — National Institute for Family Finance", "https://www.nibud.nl/"),
+    ],
+    "kinderopvangtoeslag-explained": [
+        ("Government.nl — childcare benefit", "https://www.government.nl/topics/childcare/childcare-benefit"),
+        ("Belastingdienst Toeslagen — benefits", "https://www.belastingdienst.nl/wps/wcm/connect/nl/toeslagen/toeslagen"),
+    ],
+    "best-cities-for-expats-netherlands": [
+        ("Statistics Netherlands (CBS) — English", "https://www.cbs.nl/en-gb"),
+        ("Government.nl — new in the Netherlands", "https://www.government.nl/topics/new-in-the-netherlands"),
+    ],
+    "registering-at-gemeente-netherlands": [
+        ("Government.nl — Personal Records Database (BRP)", "https://www.government.nl/topics/personal-data/personal-records-database-brp"),
+        ("Government.nl — citizen service number (BSN)", "https://www.government.nl/topics/personal-data/citizen-service-number-bsn"),
+    ],
+    "inburgering-integration-exam-netherlands": [
+        ("Inburgeren.nl — official integration site (DUO)", "https://www.inburgeren.nl/"),
+        ("DUO — Education Executive Agency", "https://duo.nl/particulier/"),
+        ("Government.nl — new in the Netherlands", "https://www.government.nl/topics/new-in-the-netherlands"),
+    ],
+    "zzp-freelancer-registration-netherlands-expats": [
+        ("KVK — Chamber of Commerce (English)", "https://www.kvk.nl/en/"),
+        ("Business.gov.nl — government for entrepreneurs", "https://business.gov.nl/"),
+        ("Belastingdienst — Tax Authority (English)", "https://www.belastingdienst.nl/wps/wcm/connect/en/home/home"),
+    ],
+    "parental-leave-netherlands-expats-guide": [
+        ("Government.nl — parental leave", "https://business.gov.nl/coming-to-the-netherlands/"),
+        ("UWV — Employee Insurance Agency (English)", "https://www.uwv.nl/en"),
+        ("SVB — Social Insurance Bank (English)", "https://www.svb.nl/en"),
+    ],
+}
 
 # category id -> human label used in the nav
 CATEGORIES = [
@@ -77,6 +199,12 @@ ADS_SCRIPT = (
     f'  <script async src="https://pagead2.googlesyndication.com/pagead/js/'
     f'adsbygoogle.js?client={ADS_CLIENT}" crossorigin="anonymous"></script>'
 )
+
+
+def re_tags(html):
+    """Strip tags for plain-text schema fields."""
+    import re
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).strip()
 
 
 def fmt_date(iso):
@@ -141,6 +269,7 @@ FOOTER = """
     <span>&copy; 2026 Expat in Holland. Independent guides, no affiliation with any bank or insurer.</span>
     <div class="footer-links">
       <a href="/about.html">About</a>
+      <a href="/editorial-standards.html">Editorial standards</a>
       <a href="/privacy.html">Privacy</a>
       <a href="/contact.html">Contact</a>
     </div>
@@ -180,9 +309,29 @@ def render_index(articles):
     desc = ("Independent, practical guides for expats living in the Netherlands. "
             "Banking, healthcare, taxes, housing, and more — written clearly, "
             "without jargon.")
+    org = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": PUBLISHER,
+        "url": SITE + "/",
+        "logo": f"{SITE}/images/logo.png",
+        "description": ("Independent guides to banking, tax, healthcare, housing and "
+                        "Dutch administration for internationals in the Netherlands."),
+        "publishingPrinciples": f"{SITE}/editorial-standards.html",
+    }
+    website = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": PUBLISHER,
+        "url": SITE + "/",
+    }
+    site_ld = (
+        f'  <script type="application/ld+json">{json.dumps(org)}</script>\n'
+        f'  <script type="application/ld+json">{json.dumps(website)}</script>\n'
+    )
     body = head(
         "Expat in Holland — Practical guides for internationals in the Netherlands",
-        desc, f"{SITE}/", og_type="website", og_image=img_of(hero))
+        desc, f"{SITE}/", og_type="website", og_image=img_of(hero), extra=site_ld)
     body += nav("home")
     body += f"""
 <div class="hero">
@@ -224,9 +373,56 @@ def render_category(cid, label, articles):
     return body
 
 
+def sources_of(a):
+    """List of (label, url) authoritative sources for an article."""
+    if a.get("sources"):
+        return [(s["label"], s["url"]) for s in a["sources"]]
+    return ART_SOURCES.get(a["id"], [])
+
+
+def sources_html(a):
+    src = sources_of(a)
+    if not src:
+        return ""
+    items = "\n          ".join(
+        f'<li><a href="{escape(url)}" target="_blank" rel="nofollow noopener">{escape(label)}</a></li>'
+        for label, url in src)
+    return f"""
+      <section class="sources" aria-labelledby="sources-h">
+        <h2 id="sources-h">Sources &amp; official references</h2>
+        <p>This guide is based on the official Dutch government and regulator pages below. We link them so you can verify every figure at source — rules and amounts change, and the source always wins.</p>
+        <ul>
+          {items}
+        </ul>
+      </section>"""
+
+
+def faq_html(a):
+    faq = a.get("faq") or []
+    if not faq:
+        return ""
+    rows = "\n        ".join(
+        f'<details class="faq-item"><summary>{escape(q["q"])}</summary>'
+        f'<div class="faq-a">{q["a"]}</div></details>'
+        for q in faq)
+    return f"""
+      <section class="faq" aria-labelledby="faq-h">
+        <h2 id="faq-h">Frequently asked questions</h2>
+        {rows}
+      </section>"""
+
+
+def byline_html(a):
+    reviewed = fmt_date(a.get("reviewed", REVIEWED_DEFAULT))
+    return (f'<div class="byline">By the <a href="/about.html">{escape(PUBLISHER)} '
+            f'editorial team</a> &nbsp;&middot;&nbsp; '
+            f'<a href="/editorial-standards.html">Reviewed {reviewed}</a> against official sources</div>')
+
+
 def render_article(a, articles):
     canonical = f"{SITE}/guides/{a['id']}.html"
     updated = fmt_date(a["publishedAt"])
+    reviewed_iso = a.get("reviewed", REVIEWED_DEFAULT)
     label = CAT_LABEL.get(a["category"], a["category"])
 
     ld = {
@@ -236,16 +432,22 @@ def render_article(a, articles):
         "description": a["excerpt"],
         "image": SITE + img_of(a),
         "datePublished": a["publishedAt"],
-        "dateModified": a["publishedAt"],
+        "dateModified": reviewed_iso,
         "articleSection": label,
         "inLanguage": "en",
         "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
-        "author": {"@type": "Organization", "name": "Expat in Holland"},
+        "author": {
+            "@type": "Organization",
+            "name": f"{PUBLISHER} editorial team",
+            "url": f"{SITE}/about.html",
+        },
         "publisher": {
             "@type": "Organization",
-            "name": "Expat in Holland",
+            "name": PUBLISHER,
             "url": SITE,
+            "logo": {"@type": "ImageObject", "url": f"{SITE}/images/logo.png"},
         },
+        "citation": [url for _, url in sources_of(a)],
     }
     breadcrumb = {
         "@context": "https://schema.org",
@@ -257,10 +459,21 @@ def render_article(a, articles):
             {"@type": "ListItem", "position": 3, "name": a["title"], "item": canonical},
         ],
     }
-    ld_script = (
-        f'  <script type="application/ld+json">{json.dumps(ld)}</script>\n'
-        f'  <script type="application/ld+json">{json.dumps(breadcrumb)}</script>\n'
-    )
+    schemas = [ld, breadcrumb]
+    if a.get("faq"):
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q["q"],
+                 "acceptedAnswer": {"@type": "Answer",
+                                    "text": re_tags(q["a"])}}
+                for q in a["faq"]
+            ],
+        })
+    ld_script = "".join(
+        f'  <script type="application/ld+json">{json.dumps(s)}</script>\n'
+        for s in schemas)
 
     related = [x for x in articles
                if x["category"] == a["category"] and x["id"] != a["id"]][:5]
@@ -283,10 +496,13 @@ def render_article(a, articles):
         <div class="article-tag"><span class="tag tag-{a['category']}">{escape(label)}</span></div>
         <h1 class="article-title">{escape(a['title'])}</h1>
         <div class="article-meta">{escape(a['readTime'])} read &nbsp;&middot;&nbsp; Last updated {updated}</div>
+        {byline_html(a)}
       </div>
       <div class="article-body">{a['body']}</div>
+{faq_html(a)}
+{sources_html(a)}
       <div style="margin-top:40px; padding-top:24px; border-top:1px solid var(--border); font-family:var(--font-ui); font-size:13px; color:var(--text-muted);">
-        <strong>Was this guide helpful?</strong> We try to keep all information up to date, but rules change. Always verify critical financial, tax, or legal information directly with the relevant authority before making decisions.
+        <strong>Was this guide helpful?</strong> We try to keep all information up to date, but rules change. Always verify critical financial, tax, or legal information directly with the relevant authority before making decisions. See our <a href="/editorial-standards.html">editorial standards</a> for how we research and review these guides.
         <br><br><a href="/">&larr; Back to all guides</a>
       </div>
     </main>
@@ -301,13 +517,68 @@ def render_article(a, articles):
         <div class="widget-title">Useful links</div>
         <ul>
           <li><a href="https://www.belastingdienst.nl/wps/wcm/connect/en/home/home" target="_blank" rel="noopener">Tax Authority (English)</a></li>
-          <li><a href="https://www.government.nl/topics/living-and-working-in-the-netherlands" target="_blank" rel="noopener">Government expat guide</a></li>
+          <li><a href="https://www.government.nl/topics/new-in-the-netherlands" target="_blank" rel="noopener">Government expat guide</a></li>
           <li><a href="https://www.ind.nl/en" target="_blank" rel="noopener">Immigration (IND)</a></li>
           <li><a href="https://www.zorgwijzer.nl/zorgvergelijker/english" target="_blank" rel="noopener">Health insurance compare</a></li>
-          <li><a href="https://www.werk.nl/en/" target="_blank" rel="noopener">Work in the Netherlands</a></li>
+          <li><a href="https://www.uwv.nl/en" target="_blank" rel="noopener">Work &amp; benefits (UWV)</a></li>
         </ul>
       </div>
     </aside>
+  </div>
+</div>"""
+    body += FOOTER
+    return body
+
+
+def render_editorial_standards():
+    canonical = f"{SITE}/editorial-standards.html"
+    desc = ("How Expat in Holland researches, sources, reviews and corrects its "
+            "guides for internationals in the Netherlands.")
+    body = head("Editorial standards — Expat in Holland", desc, canonical)
+    body += nav()
+    body += f"""
+<div class="container">
+  <div class="static-page">
+    <h1>Editorial standards</h1>
+    <p>Expat in Holland publishes guides on money, tax, healthcare, housing and Dutch
+    administration — decisions where getting it wrong has real consequences. This page
+    explains how we research, write, review and correct our content, so you can judge
+    how much to trust it.</p>
+
+    <h2>Who writes these guides</h2>
+    <p>Our guides are written and edited by the Expat in Holland editorial team — people
+    who have themselves moved to, registered in, and dealt with the bureaucracy of the
+    Netherlands as internationals. We write from first-hand experience of the same
+    processes our readers are going through: opening a bank account without a BSN,
+    registering at the gemeente, choosing a health insurer, applying the 30% ruling.</p>
+
+    <h2>How we research and source</h2>
+    <p>Every guide is built on primary, official sources — the Dutch government
+    (Rijksoverheid / Government.nl), the Tax Authority (Belastingdienst), the immigration
+    service (IND), DUO, the RDW, the consumer authority (ACM/ConsuWijzer) and the relevant
+    regulators. We link those sources at the foot of each guide so you can verify every
+    figure yourself. Where a figure changes year to year — tax thresholds, the 30% ruling,
+    insurance premiums — we cite the source and date rather than asking you to take our
+    word for it.</p>
+
+    <h2>Review and "last verified" dates</h2>
+    <p>Each guide shows a "Reviewed" date. That is the last time we checked the content
+    against the official sources, not just the day it was first published. When Dutch rules
+    change — and in tax and immigration they change often — we update the affected guides
+    and move the date forward.</p>
+
+    <h2>Independence and how we are funded</h2>
+    <p>We are independent. We have no affiliation with any bank, insurer, estate agent,
+    energy company or government body, and we do not accept payment to recommend one
+    provider over another. The site is funded by advertising, which is kept separate from
+    our editorial recommendations. A bank or insurer cannot pay to be rated more highly.</p>
+
+    <h2>Accuracy, limitations and corrections</h2>
+    <p>We work hard to be accurate, but our guides are general information, not personalised
+    legal, tax or financial advice. For decisions that matter, verify with the official
+    source we link or a qualified professional. If you spot something that is wrong or out
+    of date, please <a href="/contact.html">tell us</a> — we take corrections seriously and
+    will fix genuine errors quickly.</p>
   </div>
 </div>"""
     body += FOOTER
@@ -339,6 +610,7 @@ def render_sitemap(articles):
     urls = [
         (f"{SITE}/", "weekly", "1.0"),
         (f"{SITE}/about.html", "monthly", "0.5"),
+        (f"{SITE}/editorial-standards.html", "monthly", "0.5"),
         (f"{SITE}/privacy.html", "monthly", "0.3"),
         (f"{SITE}/contact.html", "monthly", "0.4"),
     ]
@@ -377,8 +649,10 @@ def main():
     for cid, label in CATEGORIES:
         if any(a["category"] == cid for a in articles):
             write(f"c/{cid}.html", render_category(cid, label, articles))
+    write("editorial-standards.html", render_editorial_standards())
     write("article.html", render_redirect_shim())
     write("sitemap.xml", render_sitemap(articles))
+    write("ads.txt", f"google.com, {ADS_CLIENT.replace('ca-','')}, DIRECT, f08c47fec0942fa0\n")
     print("Done.")
 
 
