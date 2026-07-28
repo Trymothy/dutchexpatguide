@@ -174,8 +174,8 @@ CATEGORIES = [
     ("Insurance", "Insurance"),
     ("Taxes", "Taxes"),
     ("Housing", "Housing"),
-    ("Identity", "Identity & admin"),
-    ("Telecoms", "Utilities & connectivity"),
+    ("Identity", "Identity"),
+    ("Telecoms", "Utilities"),
 ]
 CAT_LABEL = dict(CATEGORIES)
 
@@ -195,8 +195,10 @@ CAT_IMAGE = {
 def assign_images(articles):
     """Give each article an image, in priority order:
       1. explicit `image` field in the data
-      2. a per-article file at images/<id>.jpg (one unique photo per article)
-      3. a rotating pick from the category pool (fallback)."""
+      2. a per-article photo at images/<id>.jpg
+      3. generated cover art at images/hero-<id>.svg — used where no unique
+         photo exists, so two guides never share a picture
+      4. a rotating pick from the category pool (last resort)."""
     counters = {}
     for a in articles:
         if a.get("image"):
@@ -205,6 +207,10 @@ def assign_images(articles):
         per_article = f"/images/{a['id']}.jpg"
         if os.path.exists(os.path.join(BASE, per_article.lstrip("/"))):
             a["_image"] = per_article
+            continue
+        generated = f"/images/hero-{a['id']}.svg"
+        if os.path.exists(os.path.join(BASE, generated.lstrip("/"))):
+            a["_image"] = generated
             continue
         pool = CAT_IMAGE.get(a["category"], ["/images/cat-housing.jpg"])
         i = counters.get(a["category"], 0)
@@ -267,16 +273,18 @@ def nav(active=""):
     for cid, label in CATEGORIES:
         cls = ' class="active"' if active == cid else ""
         links.append(f'<a href="/c/{cid}.html"{cls}>{escape(label)}</a>')
-    links.append('<a href="/about.html"{}>About</a>'.format(
-        ' class="active"' if active == "about" else ""))
+    about_cls = ' class="active"' if active == "about" else ""
     return f"""
 <header class="site-header">
   <div class="header-inner">
-    <div class="site-title"><a href="/">Expat in Holland</a></div>
-    <div class="site-tagline">Practical guides for internationals in the Netherlands</div>
+    <div class="site-brand">
+      <div class="site-title"><a href="/">Expat in Holland</a></div>
+      <div class="site-tagline">Practical guides for internationals in the Netherlands</div>
+    </div>
+    <a href="/about.html" class="header-about"{about_cls}>About us</a>
   </div>
 </header>
-<nav class="main-nav">
+<nav class="main-nav" aria-label="Categories">
   <div class="nav-inner">
     {''.join(links)}
   </div>
@@ -301,13 +309,15 @@ FOOTER = """
 
 def card(a):
     label = escape(CAT_LABEL.get(a['category'], a['category']))
-    return f"""<div class="article-card">
-    <a class="card-image" href="/guides/{a['id']}.html"><img src="{img_of(a)}" alt="{escape(a['title'])}" loading="lazy" width="600" height="168"></a>
-    <span class="tag tag-{a['category']}">{label}</span>
-    <div class="card-title"><a href="/guides/{a['id']}.html">{escape(a['title'])}</a></div>
-    <div class="card-excerpt">{escape(a['excerpt'])}</div>
-    <div class="card-meta">{escape(a['readTime'])} read</div>
-  </div>"""
+    return f"""<article class="article-card cat-{a['category']}">
+    <a class="card-image" href="/guides/{a['id']}.html" tabindex="-1" aria-hidden="true"><img src="{img_of(a)}" alt="" loading="lazy" width="600" height="168"></a>
+    <div class="card-body">
+      <span class="tag tag-{a['category']}">{label}</span>
+      <h3 class="card-title"><a href="/guides/{a['id']}.html">{escape(a['title'])}</a></h3>
+      <p class="card-excerpt">{escape(a['excerpt'])}</p>
+      <div class="card-meta">{escape(a['readTime'])} read</div>
+    </div>
+  </article>"""
 
 
 def grid_by_category(articles):
@@ -354,15 +364,16 @@ def render_index(articles):
         desc, f"{SITE}/", og_type="website", og_image=img_of(hero), extra=site_ld)
     body += nav("home")
     body += f"""
-<div class="hero">
-  <figure class="hero-figure"><img src="{img_of(hero)}" alt="{escape(hero['title'])}" width="1400" height="340"></figure>
-  <div class="hero-inner">
-    <div class="hero-label">{escape(CAT_LABEL.get(hero['category'], hero['category']))}</div>
-    <h1 class="hero-title">{escape(hero['title'])}</h1>
-    <p class="hero-excerpt">{escape(hero['excerpt'])}</p>
-    <div class="hero-meta">{escape(hero['readTime'])} read</div>
-    <a href="/guides/{hero['id']}.html" class="hero-read-link">Read the guide &rarr;</a>
-  </div>
+<div class="container">
+  <a class="hero cat-{hero['category']}" href="/guides/{hero['id']}.html">
+    <img class="hero-img" src="{img_of(hero)}" alt="" width="1400" height="420">
+    <div class="hero-overlay">
+      <span class="tag tag-{hero['category']}">{escape(CAT_LABEL.get(hero['category'], hero['category']))}</span>
+      <h1 class="hero-title">{escape(hero['title'])}</h1>
+      <p class="hero-excerpt">{escape(hero['excerpt'])}</p>
+      <span class="hero-read-link">Read the guide &rarr;</span>
+    </div>
+  </a>
 </div>
 <div class="content-area">
   <div class="container">
@@ -441,12 +452,29 @@ def infographic_html(a):
     if not ig:
         return ""
     caption = ig.get("caption", "")
-    caption_html = f"\n        <figcaption>{escape(caption)}</figcaption>" if caption else ""
+    caption_html = f"\n          <figcaption>{escape(caption)}</figcaption>" if caption else ""
     return f"""
       <figure class="infographic">
-        <img src="{escape(ig['src'])}" alt="{escape(ig['alt'])}"
-             width="1000" height="1500" loading="lazy">{caption_html}
+        <div class="infographic-label">The short version</div>
+        <div class="infographic-frame">
+          <img src="{escape(ig['src'])}" alt="{escape(ig['alt'])}"
+               width="1000" height="1500">{caption_html}
+        </div>
       </figure>"""
+
+
+def body_with_infographic(a):
+    """Place the summary graphic straight after the opening paragraph, where a
+    reader deciding whether to read on will actually see it — rather than at
+    the foot of the article."""
+    ig = infographic_html(a)
+    if not ig:
+        return a["body"]
+    split = a["body"].find("</p>")
+    if split == -1:
+        return a["body"] + ig
+    cut = split + len("</p>")
+    return a["body"][:cut] + ig + a["body"][cut:]
 
 
 def byline_html(a):
@@ -528,14 +556,16 @@ def render_article(a, articles):
       <nav class="breadcrumb" aria-label="Breadcrumb" style="font-family:var(--font-ui);font-size:13px;color:var(--text-muted);margin:18px 0 8px;">
         <a href="/">Home</a> &rsaquo; <a href="/c/{a['category']}.html">{escape(label)}</a>
       </nav>
-      <figure class="article-hero"><img src="{img_of(a)}" alt="{escape(a['title'])}" width="1400" height="360"></figure>
+      <figure class="article-hero">
+        <img src="{img_of(a)}" alt="{escape(a['title'])}" width="1400" height="360">
+        <span class="tag tag-{a['category']} hero-tag">{escape(label)}</span>
+      </figure>
       <div class="article-header">
-        <div class="article-tag"><span class="tag tag-{a['category']}">{escape(label)}</span></div>
         <h1 class="article-title">{escape(a['title'])}</h1>
         <div class="article-meta">{escape(a['readTime'])} read &nbsp;&middot;&nbsp; Last updated {updated}</div>
         {byline_html(a)}
       </div>
-      <div class="article-body">{a['body']}</div>{infographic_html(a)}
+      <div class="article-body">{body_with_infographic(a)}</div>
 {faq_html(a)}
 {sources_html(a)}
       <div style="margin-top:40px; padding-top:24px; border-top:1px solid var(--border); font-family:var(--font-ui); font-size:13px; color:var(--text-muted);">
