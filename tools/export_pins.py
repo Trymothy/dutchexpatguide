@@ -17,7 +17,10 @@ chunks (IHDR/PLTE/IDAT/tRNS/IEND) that every decoder understands.
 Run with the tooling venv:
     tools/.venv/bin/python tools/export_pins.py
 
-Output: images/png/<name>.png at 1000x1500 (Pinterest's preferred 2:3).
+Covers the pins plus the profile assets (avatar, cover, board covers);
+see ASSETS for the target width of each.
+
+Output: images/png/<name>.png
 """
 import os
 import struct
@@ -30,6 +33,11 @@ SRGB_PROFILE = "/System/Library/ColorSync/Profiles/sRGB Profile.icc"
 # Chunks every PNG decoder is required to understand. Everything else —
 # colour profiles, EXIF, XMP — is dropped for maximum uploader compatibility.
 BASELINE_CHUNKS = {b"IHDR", b"PLTE", b"IDAT", b"IEND", b"tRNS"}
+
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC = os.path.join(BASE, "images")
+OUT = os.path.join(SRC, "png")
 
 
 def strip_to_baseline(path):
@@ -50,23 +58,26 @@ def strip_to_baseline(path):
     open(path, "wb").write(bytes(out))
     return dropped
 
-BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(BASE, "images")
-OUT = os.path.join(SRC, "png")
 
-TARGET_W = 1000  # Pinterest recommends 1000x1500
-
-PINS = [
-    "pin-first-weeks-netherlands",
-    "pin-cost-of-living-netherlands",
-    "pin-30-percent-ruling-2026",
-    "pin-health-insurance-netherlands",
-    "pin-box-3-wealth-tax",
-    "pin-best-dutch-cities",
+# (source svg name, output pixel width) — heights follow the SVG's own ratio
+ASSETS = [
+    # pins: Pinterest's preferred 2:3 -> 1000x1500
+    ("pin-first-weeks-netherlands", 1000),
+    ("pin-cost-of-living-netherlands", 1000),
+    ("pin-30-percent-ruling-2026", 1000),
+    ("pin-health-insurance-netherlands", 1000),
+    ("pin-box-3-wealth-tax", 1000),
+    ("pin-best-dutch-cities", 1000),
+    # profile assets
+    ("brand-avatar", 600),        # 1:1, cropped to a circle
+    ("brand-cover", 1600),        # 16:9 profile cover
+    ("board-cover-moving", 600),  # 1:1, cropped to ~222x150 on the grid
+    ("board-cover-cost", 600),
+    ("board-cover-tax", 600),
 ]
 
 
-def export(name):
+def export(name, target_w):
     svg_path = os.path.join(SRC, f"{name}.svg")
     if not os.path.exists(svg_path):
         return f"  MISSING {name}.svg"
@@ -78,8 +89,8 @@ def export(name):
     if drawing is None:
         return f"  FAILED to parse {name}.svg"
 
-    scale = TARGET_W / drawing.width
-    drawing.width, drawing.height = TARGET_W, drawing.height * scale
+    scale = target_w / drawing.width
+    drawing.width, drawing.height = target_w, drawing.height * scale
     drawing.scale(scale, scale)
 
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
@@ -88,7 +99,7 @@ def export(name):
         renderPDF.drawToFile(drawing, pdf_path)
         png_path = os.path.join(OUT, f"{name}.png")
         subprocess.run(
-            ["sips", "-s", "format", "png", "--resampleWidth", str(TARGET_W),
+            ["sips", "-s", "format", "png", "--resampleWidth", str(target_w),
              pdf_path, "--out", png_path],
             check=True, capture_output=True,
         )
@@ -118,6 +129,6 @@ if __name__ == "__main__":
     if sys.platform != "darwin":
         sys.exit("This exporter relies on macOS `sips`.")
     os.makedirs(OUT, exist_ok=True)
-    for pin in PINS:
-        print(export(pin))
+    for name, width in ASSETS:
+        print(export(name, width))
     print("done")
