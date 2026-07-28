@@ -8,15 +8,47 @@ Pipeline: svglib parses the SVG -> reportlab writes a vector PDF -> macOS
 `sips` rasterises the PDF at the exact pixel width. No system Cairo needed,
 which is why this works where cairosvg and rlPyCairo do not.
 
+Two compatibility steps matter, and skipping them produced files Pinterest
+rejected as broken. sips tags its output Display P3 and writes a `cICP`
+chunk, which is a recent addition to the PNG spec that stricter decoders
+refuse. So the output is converted to sRGB and then reduced to the baseline
+chunks (IHDR/PLTE/IDAT/tRNS/IEND) that every decoder understands.
+
 Run with the tooling venv:
     tools/.venv/bin/python tools/export_pins.py
 
 Output: images/png/<name>.png at 1000x1500 (Pinterest's preferred 2:3).
 """
 import os
+import struct
 import subprocess
 import sys
 import tempfile
+
+SRGB_PROFILE = "/System/Library/ColorSync/Profiles/sRGB Profile.icc"
+
+# Chunks every PNG decoder is required to understand. Everything else —
+# colour profiles, EXIF, XMP — is dropped for maximum uploader compatibility.
+BASELINE_CHUNKS = {b"IHDR", b"PLTE", b"IDAT", b"IEND", b"tRNS"}
+
+
+def strip_to_baseline(path):
+    """Rewrite a PNG keeping only the chunks required by the spec."""
+    raw = open(path, "rb").read()
+    if raw[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"{path} is not a PNG")
+    out = bytearray(raw[:8])
+    i, dropped = 8, []
+    while i < len(raw):
+        length = struct.unpack(">I", raw[i:i + 4])[0]
+        ctype = raw[i + 4:i + 8]
+        if ctype in BASELINE_CHUNKS:
+            out += raw[i:i + 12 + length]
+        else:
+            dropped.append(ctype.decode("latin1"))
+        i += 12 + length
+    open(path, "wb").write(bytes(out))
+    return dropped
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "images")
@@ -60,6 +92,11 @@ def export(name):
              pdf_path, "--out", png_path],
             check=True, capture_output=True,
         )
+        # normalise colour, then reduce to baseline chunks
+        if os.path.exists(SRGB_PROFILE):
+            subprocess.run(["sips", "-m", SRGB_PROFILE, png_path, "--out", png_path],
+                           check=True, capture_output=True)
+        strip_to_baseline(png_path)
     finally:
         os.unlink(pdf_path)
 
